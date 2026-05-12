@@ -1,5 +1,0 @@
-packages:
-  - '.'
-
-patchedDependencies:
-  tldraw@4.2.0: patches/tldraw@4.2.0.patch

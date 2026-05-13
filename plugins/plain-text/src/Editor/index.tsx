@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import {
@@ -33,6 +33,7 @@ export default function Editor() {
   const [fontSize, setFontSize] = useState(loadFontSize)
   const [showLineNumbers] = useState(true)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const lineNumbersRef = useRef<HTMLDivElement>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   // 初始化：加载活跃文稿
@@ -65,7 +66,7 @@ export default function Editor() {
   // 滚动同步行号
   const handleScroll = () => {
     const textarea = textareaRef.current
-    const lineNumbers = document.querySelector('.editor-line-numbers')
+    const lineNumbers = lineNumbersRef.current
     if (textarea && lineNumbers) {
       lineNumbers.scrollTop = textarea.scrollTop
     }
@@ -145,7 +146,7 @@ export default function Editor() {
     localStorage.setItem(FONT_SIZE_KEY, String(next))
   }
 
-  const lineCount = note?.content ? note.content.split('\n').length : 1
+  const lineCount = useMemo(() => note?.content ? note.content.split('\n').length : 1, [note?.content])
 
   const formatTime = (ts: number) => {
     const now = Date.now()
@@ -166,37 +167,10 @@ export default function Editor() {
   return (
     <div className="editor">
       <div className="editor-main">
-        {note.mode === 'markdown' ? (
-          <div className="editor-md-view">
-            <div className="editor-content">
-              {showLineNumbers && (
-                <div className="editor-line-numbers" style={lnStyle}>
-                  {Array.from({ length: lineCount }, (_, i) => (
-                    <span key={i}>{i + 1}</span>
-                  ))}
-                </div>
-              )}
-              <textarea
-                ref={textareaRef}
-                className="editor-textarea"
-                style={editorStyle}
-                value={note.content}
-                onChange={handleContentChange}
-                onScroll={handleScroll}
-                placeholder="开始写点什么..."
-                spellCheck={false}
-              />
-            </div>
-            <div
-              className="editor-md-preview"
-              style={editorStyle}
-              dangerouslySetInnerHTML={{ __html: mdHtml }}
-            />
-          </div>
-        ) : (
+        <div className={note.mode === 'markdown' ? 'editor-md-view' : 'editor-content'}>
           <div className="editor-content">
             {showLineNumbers && (
-              <div className="editor-line-numbers" style={lnStyle}>
+              <div ref={lineNumbersRef} className="editor-line-numbers" style={lnStyle}>
                 {Array.from({ length: lineCount }, (_, i) => (
                   <span key={i}>{i + 1}</span>
                 ))}
@@ -213,7 +187,14 @@ export default function Editor() {
               spellCheck={false}
             />
           </div>
-        )}
+          {note.mode === 'markdown' && (
+            <div
+              className="editor-md-preview"
+              style={editorStyle}
+              dangerouslySetInnerHTML={{ __html: mdHtml }}
+            />
+          )}
+        </div>
 
         {/* 浮动底栏 */}
         <div className="editor-toolbar">

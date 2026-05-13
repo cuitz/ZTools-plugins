@@ -1,6 +1,6 @@
 {
   "name": "plain-text",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "即开即写的轻量文本编辑器，支持纯文本和 Markdown 双模式。自动保存、多文稿管理、一键导出 .txt/.md 文件。",
   "type": "module",
   "scripts": {
